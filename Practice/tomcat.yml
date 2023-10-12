@@ -33,5 +33,4 @@
        url: "https://dlcdn.apache.org/tomcat/tomcat-{{ tomcat_major_version }}/v{{ tomcat_specific_version }}/bin/apache-tomcat-{{ tomcat_specific_version }}.tar.gz" 
        dest: "/tmp/apache-tomcat-{{ tomcat_specific_version }}.tar.gz" 
 
-
      
