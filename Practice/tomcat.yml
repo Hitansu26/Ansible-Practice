@@ -9,10 +9,12 @@
     shell: /bin/false 
     tomcat_major_version: 10
     tomcat_specific_version: 10.1.14
+    download_url: 
   tasks: 
    - name: install openjdk  
      ansible.builtin.apt: 
        name: openjdk-{{ java_version }}-jdk
+       create_home: true 
        update_cache: true
        state: present 
    - name: creating group for tomcat
@@ -28,8 +30,8 @@
        state: present 
    - name: download tomcat 
      ansible.builtin.get_url module: 
-       url: wget https://dlcdn.apache.org/tomcat/tomcat-{{ tomcat_major_version }}/v{{ tomcat_specific_version }}/bin/apache-tomcat-10.1.14.tar.gz 
-       dest: /tmp/apache-tomcat-{{ tomcat_specific_version }}.tar.gz
+       url: "https://dlcdn.apache.org/tomcat/tomcat-{{ tomcat_major_version }}/v{{ tomcat_specific_version }}/bin/apache-tomcat-{{ tomcat_specific_version }}.tar.gz" 
+       dest: "/tmp/apache-tomcat-{{ tomcat_specific_version }}.tar.gz" 
 
 
      
