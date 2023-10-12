@@ -1,7 +1,7 @@
 --- 
 - name: install tomcat 
   become: yes 
-  hosts: webserver 
+  hosts: appserver 
   vars: 
     username: tomcat
     groupname: tomcat
