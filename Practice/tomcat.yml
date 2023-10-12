@@ -17,18 +17,17 @@
        state: present 
    - name: creating group for tomcat
      ansible.builtin.group: 
-       name: {{ groupname }}
+       name: "{{ groupname }}"
        state: present 
    - name: creating user as tomcat
      ansible.builtin.user: 
-       name: {{ username }}
-       group: {{ groupname }}
-       home: {{ homedir }}
-       shell: {{ shell }}
+       name: "{{ username }}"
+       group: "{{ groupname }}"
+       home: "{{ homedir }}"
+       shell: "{{ shell }}"
        state: present 
-   - name: download tomcat tar file
+   - name: download tomcat 
      ansible.builtin.get_url module: 
-       name: Download Tomcat tar file 
        url: wget https://dlcdn.apache.org/tomcat/tomcat-{{ tomcat_major_version }}/v{{ tomcat_specific_version }}/bin/apache-tomcat-10.1.14.tar.gz 
        dest: /tmp/apache-tomcat-{{ tomcat_specific_version }}.tar.gz
 
