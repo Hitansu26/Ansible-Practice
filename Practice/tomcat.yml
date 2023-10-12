@@ -7,6 +7,7 @@
     groupname: tomcat
     homedir: /opt/tomcat
     shell: /bin/false 
+    java_version: 11
     tomcat_major_version: 10
     tomcat_specific_version: 10.1.14
     download_url: 
