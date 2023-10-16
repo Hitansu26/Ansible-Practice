@@ -1,71 +1,78 @@
---- 
-- name: install tomcat 
-  become: yes 
-  hosts: appserver 
-  vars: 
+- name: install tomcat
+  become: yes
+  hosts: appserver
+  vars:
     java_version: 11
     username: tomcat
     groupname: tomcat
-    homedir: /opt/tomcat
-    shell: /bin/false   
+    homedir: /opt/tomcat 
+    shell: /bin/false
     tomcat_major_version: 10
     tomcat_specific_version: 10.1.14
-    download_url: 
-  tasks: 
-   - name: install openjdk  
-     ansible.builtin.apt: 
-       name: "openjdk-{{ java_version }}-jdk"  
-       update_cache: yes   
-       state: present 
-   - name: creating group for tomcat
-     ansible.builtin.group: 
-       name: "{{ groupname }}"
-       state: present 
-   - name: creating user as tomcat
-     ansible.builtin.user: 
-       name: "{{ username }}"
-       group: "{{ groupname }}"
-       home: "{{ homedir }}"
-       shell: "{{ shell }}"
-       state: present  
-   - name: download and extract tomcat
-     ansible.builtin.unarchive: 
-       src:  "https://dlcdn.apache.org/tomcat/tomcat-{{ tomcat_major_version }}/v{{ tomcat_specific_version }}/bin/apache-tomcat-{{ tomcat_specific_version }}.tar.gz"
-       copy: true  
-       creates: "{{ homedir }}/apache-tomcat-{{ tomcat_specific_version }}" 
-       dest: "{{ homedir }}"
-       group: "{{ groupname }}"
-       owner: "{{ username }}"
-   - name: create symbolic link 
-     ansible.builtin.file: 
-       src: "{{ homedir }}/apache-tomcat-{{ tomcat_specific_version }}"
-       dest: "{{ homedir }}/latest"
-       owner: "{{ username }}"
-       group: "{{ groupname }}"
-       state: link
-   - name: Recursively chnages ownership of a directory 
-     ansible.builtin.file: 
-       path: "{{ homedir }}"
-       state: directory
-       recurse: true 
-       owner: "{{ username }}"
-       group: "{{ groupname }}"
-   - name: get all the shell files 
-     ansible.builtin.command: 
-       register: shell_files
-   - name: print teh value
-     ansible.builtin.debug: 
-       var: shell_files
-   - name: print all files 
-     ansible.builtin.file: 
-       path: "{{ item }}"
-       owner: "{{ username }}"
-       group: "{{ groupname }}"
-       mode: "0751"
-     loop: "{{ shell_files.stdout_lines }}"
-       
+    service_file_path: "/etc/systemd/system/tomcat.service"
+  tasks:
+  - name: install openjdk
+    ansible.builtin.apt:
+      name: "openjdk-{{ java_version }}-jdk"
+      update_cache: yes
+      state: present
+  - name: creating group for tomcat
+    ansible.builtin.group:
+      name: "{{ groupname }}"
+      state: present
+  - name: creating user as tomcat
+    ansible.builtin.user:
+      name: "{{ username }}"
+      group: "{{ groupname }}"
+      home: "{{ homedir }}"
+      shell: "{{ shell }}"
+      state: present
+  - name: download and extract tomcat
+    ansible.builtin.unarchive:
+      src: "https://dlcdn.apache.org/tomcat/tomcat-{{ tomcat_major_version }}/v{{ tomcat_specific_version }}/bin/apache-tomcat-{{ tomcat_specific_version }}.tar.gz"
+      copy: true
+      creates: "{{ homedir }}/apache-tomcat-{{ tomcat_specific_version }}"
+      dest: "{{ homedir }}"
+      group: "{{ groupname }}"
+      owner: "{{ username }}"
+  - name: create symbolic link
+    ansible.builtin.file:
+      src: "{{ homedir }}/apache-tomcat-{{ tomcat_specific_version }}"
+      dest: "{{ homedir }}/latest"
+      owner: "{{ username }}"
+      group: "{{ groupname }}"
+      state: link
+  - name: Recursively chnages ownership of a directory
+    ansible.builtin.file:
+      path: "{{ homedir }}"
+      state: directory
+      recurse: true
+      owner: "{{ username }}"
+      group: "{{ groupname }}"
+  - name: get all the shell files
+    ansible.builtin.command: sudo sh -c 'ls {{ homedir}}/latest/bin/*.sh'
+    register: shell_files
+  - name: print teh value
+    ansible.builtin.debug:
+      var: shell_files
+  - name: print all files
+    ansible.builtin.file:
+      path: "{{ item }}"
+      owner: "{{ username }}"
+      group: "{{ groupname }}"
+      mode: "0751"
+    loop: "{{ shell_files.stdout_lines }}"
+  - name: copy tomcat service files
+    ansible.builtin.template: 
+      src: tomcat_service_ubuntu.j2
+      dest: "{{ service_file_path }}"
+  - name: reload, daemon, enable and start tomcat
+    ansible.builtin.systemd: 
+      name: tomcat
+      daemon_reload: true 
+      enabled: true 
+      state: started 
 
-     
 
 
 
