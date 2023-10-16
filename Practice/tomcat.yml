@@ -3,20 +3,19 @@
   become: yes 
   hosts: appserver 
   vars: 
+    java_version: 11
     username: tomcat
     groupname: tomcat
     homedir: /opt/tomcat
-    shell: /bin/false 
-    java_version: 11
+    shell: /bin/false   
     tomcat_major_version: 10
     tomcat_specific_version: 10.1.14
     download_url: 
   tasks: 
    - name: install openjdk  
      ansible.builtin.apt: 
-       name: "openjdk-{{ java_version }}-jdk" 
-       create_home: true 
-       update_cache: true
+       name: "openjdk-{{ java_version }}-jdk"  
+       update_cache: yes   
        state: present 
    - name: creating group for tomcat
      ansible.builtin.group: 
@@ -33,5 +32,38 @@
      ansible.builtin.get_url: 
        url: "https://dlcdn.apache.org/tomcat/tomcat-{{ tomcat_major_version }}/v{{ tomcat_specific_version }}/bin/apache-tomcat-{{ tomcat_specific_version }}.tar.gz" 
        dest: "/tmp/apache-tomcat-{{ tomcat_specific_version }}.tar.gz" 
+   - name: extract tomcat
+     ansible.builtin.unarchive: 
+       src: "/tmp/apache-tomcat-{{ tomcat_specific_version }}.tar.gz"
+       copy: false 
+       creates: "{{ homedir }}/apache-tomcat-{{ tomcat_specific_version }}" 
+       dest: "{{ homedir }}"
+       group: "{{ groupname }}"
+       owner: "{{ username }}"
+   - name: create symbolic link 
+     ansible.builtin.file: 
+       src:  "https://dlcdn.apache.org/tomcat/tomcat-{{ tomcat_major_version }}/v{{ tomcat_specific_version }}/bin/apache-tomcat-{{ tomcat_specific_version }}.tar.gz" 
+       dest: "{{ homedir }}/latest"
+       owner: "{{ username }}"
+       group: "{{ groupname }}"
+       state: link
+       remote_src: true 
+   - name: Recursively chnages ownership of a directory 
+     ansible.builtin.file: 
+       path: "{{ homedir }}"
+       state: directory
+       recurse: true 
+       owner: "{{ username }}"
+       group: "{{ groupname }}" 
+   - name: Give execute permission to Shell 
+     ansible.builtin.command: "chmod +x /opt/tomcat/latest/bin/*.sh"
+
+
+       
 
      
+
+
+
+
+
