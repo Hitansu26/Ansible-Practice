@@ -1,0 +1,38 @@
+--- 
+- name: install tomcat 
+  become: yes 
+  hosts: appserver 
+  vars: 
+    java_version: 11
+    username: tomcat
+    groupname: tomcat
+    homedir: /opt/tomcat
+    shell: /bin/false   
+    tomcat_major_version: 9
+    tomcat_specific_version: 9.0.70
+    download_url: 
+  tasks: 
+  #  - name: fail on unsupported operating system 
+  #    ansible.builtin.fail: 
+  #      msg: "This playbook work only on Redhat" 
+  #    when: ansible_facts["os_family"] != "Debian" and ansible_facts["os_family"] != "RedHat"  
+   - name: install openjdk  
+     ansible.builtin.dnf: 
+       name: "openjdk-{{ java_version }}-jdk"  
+       update_cache: yes   
+       state: present 
+   - name: creating group for tomcat
+     ansible.builtin.group: 
+       name: "{{ groupname }}"
+       state: present 
+   - name: creating user as tomcat
+     ansible.builtin.user: 
+       name: "{{ username }}"
+       group: "{{ groupname }}"
+       home: "{{ homedir }}"
+       shell: "{{ shell }}"
+       state: present 
+   - name: download tomcat 
+     ansible.builtin.get_url: 
+       url: "https://dlcdn.apache.org/tomcat/tomcat-{{ tomcat_major_version }}/v{{ tomcat_specific_version }}/bin/apache-tomcat-{{ tomcat_specific_version }}.tar.gz" 
+       dest: "/tmp/apache-tomcat-{{ tomcat_specific_version }}.tar.gz"  

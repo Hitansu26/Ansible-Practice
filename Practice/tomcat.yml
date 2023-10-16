@@ -49,9 +49,20 @@
        state: directory
        recurse: true 
        owner: "{{ username }}"
-       group: "{{ groupname }}" 
-   - name: Give execute permission to Shell 
+       group: "{{ groupname }}"
+   - name: get all the shell files 
      ansible.builtin.command: 
+       register: shell_files
+   - name: print teh value
+     ansible.builtin.debug: 
+       var: shell_files
+   - name: print all files 
+     ansible.builtin.file: 
+       path: "{{ item }}"
+       owner: "{{ username }}"
+       group: "{{ groupname }}"
+       mode: "0751"
+     loop: "{{ shell_files.stdout_lines }}"
        
 
      
