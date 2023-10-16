@@ -27,27 +27,22 @@
        group: "{{ groupname }}"
        home: "{{ homedir }}"
        shell: "{{ shell }}"
-       state: present 
-   - name: download tomcat 
-     ansible.builtin.get_url: 
-       url: "https://dlcdn.apache.org/tomcat/tomcat-{{ tomcat_major_version }}/v{{ tomcat_specific_version }}/bin/apache-tomcat-{{ tomcat_specific_version }}.tar.gz" 
-       dest: "/tmp/apache-tomcat-{{ tomcat_specific_version }}.tar.gz" 
-   - name: extract tomcat
+       state: present  
+   - name: download and extract tomcat
      ansible.builtin.unarchive: 
-       src: "/tmp/apache-tomcat-{{ tomcat_specific_version }}.tar.gz"
-       copy: false 
+       src:  "https://dlcdn.apache.org/tomcat/tomcat-{{ tomcat_major_version }}/v{{ tomcat_specific_version }}/bin/apache-tomcat-{{ tomcat_specific_version }}.tar.gz"
+       copy: true  
        creates: "{{ homedir }}/apache-tomcat-{{ tomcat_specific_version }}" 
        dest: "{{ homedir }}"
        group: "{{ groupname }}"
        owner: "{{ username }}"
    - name: create symbolic link 
      ansible.builtin.file: 
-       src:  "https://dlcdn.apache.org/tomcat/tomcat-{{ tomcat_major_version }}/v{{ tomcat_specific_version }}/bin/apache-tomcat-{{ tomcat_specific_version }}.tar.gz" 
+       src: "{{ homedir }}/apache-tomcat-{{ tomcat_specific_version }}"
        dest: "{{ homedir }}/latest"
        owner: "{{ username }}"
        group: "{{ groupname }}"
        state: link
-       remote_src: true 
    - name: Recursively chnages ownership of a directory 
      ansible.builtin.file: 
        path: "{{ homedir }}"
@@ -56,9 +51,7 @@
        owner: "{{ username }}"
        group: "{{ groupname }}" 
    - name: Give execute permission to Shell 
-     ansible.builtin.command: "chmod +x /opt/tomcat/latest/bin/*.sh"
-
-
+     ansible.builtin.command: 
        
 
      
