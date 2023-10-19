@@ -1,0 +1,87 @@
+---
+- name: Install Nop-commerce
+  become: yes 
+  hosts: appserver
+  vars: 
+    os_version: 20.04
+    runtime: 7.0
+    homedir: /var/www/nopCommerce
+    groupname: nopCommerce
+    user: nopCommerce
+    group: www-data
+    service_file_path: /etc/systemd/system/nopCommerce.service
+  tasks:
+    - name: download package
+      ansible.builtin.get_url: 
+        url: "https://packages.microsoft.com/config/ubuntu/{{ os_version }}/packages-microsoft-prod.deb" 
+        dest: /tmp/packages-microsoft-prod.deb
+    - name: Copy package 
+      ansible.builtin.copy:
+        src: /tmp/packages-microsoft-prod.deb
+        dest: /
+        mode: u+rw,g-wx,o-rwx 
+        remote_src: true
+    - name: Install Mircrosoft package 
+      ansible.builtin.command: sudo dpkg -i /tmp/packages-microsoft-prod.deb   
+    - name: Install .net 
+      ansible.builtin.apt: 
+        name: 
+          - unzip
+          - apt-transport-https
+          - aspnetcore-runtime-{{ runtime }}
+        state: present 
+        update_cache: true
+    - name: Execute dotnet list runtime 
+      ansible.builtin.command: dotnet --list-runtimes
+      register: runtime
+    - name: Print .NET runtime
+      ansible.builtin.debug: 
+        var: runtime 
+    - name: Create Group for nopCommerce  
+      ansible.builtin.group:
+        name: "{{ groupname }}"
+        state: present
+    - name: Add the user nopCommerce
+      ansible.builtin.user:
+        name: "{{ user }}"
+        group: "{{ groupname }}"
+    - name: Create directory for nopCommerce 
+      ansible.builtin.file:
+        path: "{{ homedir }}"
+        mode: '0755'
+        state: directory
+    - name: download nopCommerce 
+      ansible.builtin.unarchive:
+        src: " https://github.com/nopSolutions/nopCommerce/releases/download/release-4.60.5/nopCommerce_4.60.5_NoSource_linux_x64.zip"
+        dest: "{{ homedir }}"
+        remote_src: true 
+    - name: Create Directory 
+      ansible.builtin.file: 
+        path: 
+          - "{{ homedir }}/bin" 
+          - "{{ homedir }}/logs"
+        state: directory
+        mode: '0755'
+    - name: Change group recursively 
+      ansible.builtin.file: 
+        path: "{{ homedir }}"
+        state: directory
+        recurse: true
+        owner: "{{ user }}" 
+        group: "{{ groupname }}"
+    - name: copy service file
+      ansible.builtin.template: 
+        src: nop_service.j2
+        dest: "{{ service_file_path }}" 
+    - name: start nop service 
+      ansible.builtin.systemd:
+        name: nopCommerce 
+        daemon_reload: true 
+        enabled: true 
+        state: restarted
+   
+
+
+
+
+        
