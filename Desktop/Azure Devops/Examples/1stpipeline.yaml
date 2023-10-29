@@ -1,0 +1,10 @@
+--- 
+pool: default
+stages: 
+  - stage: 'updatesystem'
+    displayName: Update my system
+    jobs: 
+      - job: 'systemupdate'
+        displayName: updating system
+        steps: 
+          - step: 'sudo apt update'
